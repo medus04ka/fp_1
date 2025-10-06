@@ -41,7 +41,7 @@ modulpik n = head (filter (\x -> (10 ^ x - 1) `mod` m == 0) [1 ..])
     m = normalize n
 
 mappedpik :: Integer -> Integer
-mappedpik n = fst . head . filter snd $
+mappedpik n = fst.head.filter snd $
   map (\x -> (x, (10 ^ x - 1) `mod` m == 0)) [1 ..]
   where
     m = normalize n

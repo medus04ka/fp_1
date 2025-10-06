@@ -3,7 +3,7 @@
 
 Цель: освоить базовые приёмы и абстракции функционального программирования: функции, поток управления и поток данных, сопоставление с образцом, рекурсия, свёртка, отображение, работа с функциями как с данными, списки.
 
-## Условие
+## Условия задачек
 
 ### Задача 5
 
@@ -24,3 +24,7 @@ A unit fraction contains 1 in the numerator. The decimal representation of the u
 
 Where 0.1(6) means 0.166666..., and has a 1-digit recurring cycle. It can be seen that 1/7 has a 6-digit recurring cycle. Find the value of d < 1000 for which 1/d contains the longest recurring cycle in its decimal fraction part.
 
+## ye b [eq c ybv]
+
+# Вывод
+Было интересно прочитать книгу "Программирую на Хаскель", прочитала я весь первый модуль, в целом этого достаточно для первой лабы, там и второй так то нужен чуток, но дальше было лень, максимум дочитать до 12 главы! и для первой лабы прям как раз \
