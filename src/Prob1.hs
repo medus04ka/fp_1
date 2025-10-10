@@ -22,7 +22,7 @@ recursionpic n = go n
   where
     go i
       | checkI n i = i
-      | otherwise = go (i + n)
+      | otherwise = i + go (i + n) - i
 
 modulpic :: Int -> Int
 modulpic n = head (valid n (candidates n))

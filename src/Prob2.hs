@@ -7,9 +7,6 @@ module Prob2
   )
 where
 
-import Data.List (maximumBy)
-import Data.Function (on)
-
 naturalNumbers :: [Integer]
 naturalNumbers = [1 ..]
 
