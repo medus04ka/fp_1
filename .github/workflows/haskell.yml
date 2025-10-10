@@ -2,46 +2,49 @@ name: Haskell CI
 
 on:
   push:
-    branches: [ "master"]
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
-permissions:
-  contents: read
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-haskell@v1
+    
+    - name: Setup Haskell
+      uses: haskell-actions/setup-haskell@v2
       with:
-        ghc-version: '9.6.3'
-        cabal-version: '3.16'
+        ghc-version: '9.4.8'  # Стабильная и хорошо поддерживаемая версия
+        cabal-version: '3.10.1.0'
 
     - name: Cache
       uses: actions/cache@v3
-      env:
-        cache-name: cache-cabal
       with:
-        path: ~/.cabal
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
+        path: |
+          ~/.cabal/store
+          ~/.cabal/packages
+          dist-newstyle
+          .ghc
+        key: ${{ runner.os }}-cabal-${{ hashFiles('**/*.cabal', '**/cabal.project', '**/cabal.project.freeze') }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
+          ${{ runner.os }}-cabal-
+
+    - name: Update cabal
+      run: cabal update
 
     - name: Install dependencies
-      run: |
-        cabal update
-        cabal build --only-dependencies --enable-tests --enable-benchmarks
+      run: cabal build --only-dependencies --enable-tests --enable-benchmarks
+
     - name: Build
-      run: |
-        cabal build --enable-tests --enable-benchmarks all
-        cabal install hlint
-    - name: Lint
-      run: hlint . --report
+      run: cabal build --enable-tests --enable-benchmarks all
+
+    - name: Install hlint
+      run: cabal install hlint --overwrite-policy=always
+
+    - name: Run hlint
+      run: ~/.cabal/bin/hlint . --report
+
     - name: Run tests
       run: cabal test all
