@@ -11,7 +11,7 @@ module SCHashmap (
 ) where
 
 import Prelude hiding (lookup)
-import qualified Data.List as L
+import Data.Maybe (isJust)
 import Data.Hashable
 
 data Table k v = Table Int [[(k, v)]]
@@ -34,7 +34,7 @@ lookup key (Table size buckets) =
       | otherwise = lookup' xs
 
 member :: (Eq k, Hashable k) => k -> Table k v -> Bool
-member k = maybe False (const True) . lookup k
+member k = isJust . lookup k
 
 insert :: (Eq k, Hashable k) => k -> v -> Table k v -> Table k v
 insert = insertWith const

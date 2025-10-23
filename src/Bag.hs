@@ -34,18 +34,18 @@ singleton :: (Eq a, Hashable a) => a -> Bag a
 singleton x = Bag (SCH.insert x 1 SCH.empty)
 
 fromList :: (Eq a, Hashable a) => [a] -> Bag a
-fromList xs = insertList empty xs
+fromList = insertList empty
 
 toList :: Bag a -> [a]
 toList (Bag table) =
-    concat (map (\(k, n) -> replicate n k) (SCH.toList table))
+    concatMap (\(k, n) -> replicate n k) (SCH.toList table)
 
 
 insert :: (Eq a, Hashable a) => a -> Bag a -> Bag a
 insert x (Bag table) = Bag (SCH.insertWith (+) x 1 table)
 
 insertList :: (Eq a, Hashable a) => Bag a -> [a] -> Bag a
-insertList bag xs = foldr insert bag xs
+insertList bag = foldr insert bag
 
 delete :: (Eq a, Hashable a) => a -> Bag a -> Bag a
 delete x (Bag table) =
@@ -54,7 +54,7 @@ delete x (Bag table) =
         _ -> Bag (SCH.delete x table)
 
 deleteList :: (Eq a, Hashable a) => Bag a -> [a] -> Bag a
-deleteList bag xs = foldl (flip delete) bag xs
+deleteList bag = foldl (flip delete) bag
 
 
 member :: (Eq a, Hashable a) => a -> Bag a -> Bool
@@ -95,14 +95,14 @@ filterBag p bag =
     fromList (filter p (toList bag))
 
 propMonoidLeftId :: (Eq a, Ord a, Hashable a) => Bag a -> Bool
-propMonoidLeftId a = (union empty a) == a
+propMonoidLeftId a = empty `union` a == a
 
 propMonoidRightId :: (Eq a, Ord a, Hashable a) => Bag a -> Bool
-propMonoidRightId a = (union a empty) == a
+propMonoidRightId a = a `union` empty == a
 
 propMonoidAssociativity :: (Eq a, Ord a, Hashable a) => Bag a -> Bag a -> Bag a -> Bool
 propMonoidAssociativity a b c =
-    (union a (union b c)) == (union (union a b) c)
+    a `union` (b `union` c) == (a `union` b) `union` c
 
 instance (Eq a, Hashable a) => Semigroup (Bag a) where
     (<>) = union
