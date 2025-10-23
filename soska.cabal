@@ -16,8 +16,8 @@ license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
-    README.md
-    CHANGELOG.md
+  README.md
+  CHANGELOG.md
 
 source-repository head
   type: git
@@ -25,48 +25,53 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
-      Prob1
-      Prob2
+    Bag
+    SCHashmap
   other-modules:
-      Paths_soska
+    Paths_soska
   autogen-modules:
-      Paths_soska
+    Paths_soska
   hs-source-dirs:
-      src
+    src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings
   build-depends:
-      base >=4.7 && <5
-    , text
+    QuickCheck,
+    base >=4.7 && <5,
+    hashable,
+    text
   default-language: Haskell2010
 
 executable soska-exe
   main-is: Main.hs
   other-modules:
-      Paths_soska
+    Paths_soska
   autogen-modules:
-      Paths_soska
+    Paths_soska
   hs-source-dirs:
-      app
+    app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
-    , soska
-    , text
+    QuickCheck,
+    base >=4.7 && <5,
+    hashable,
+    soska,
+    text
   default-language: Haskell2010
 
 test-suite soska-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_soska
+    Paths_soska
   autogen-modules:
-      Paths_soska
+    Paths_soska
   hs-source-dirs:
-      test
+    test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
-    , soska
-    , text
+    QuickCheck,
+    base >=4.7 && <5,
+    hashable,
+    soska,
+    text
   default-language: Haskell2010

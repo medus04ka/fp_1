@@ -1,26 +1,24 @@
-import Data.Text as T
-import Data.Text.IO as TIO
-import qualified Prob2 as K
-import qualified Prob1 as R
+{-# LANGUAGE ScopedTypeVariables #-}
+
+module Main where
+
+import Test.QuickCheck
+import qualified Bag as B
+import Data.Hashable (Hashable)
+
+instance (Eq a, Hashable a, Arbitrary a) => Arbitrary (B.Bag a) where
+  arbitrary = B.fromList <$> arbitrary
 
 main :: IO ()
 main = do
-  TIO.putStrLn "1 ntcn ydf[e]"
-  assertEquals (R.tailrecpic 20, 232792560) "Хвостовая рекурсия"
-  assertEquals (R.recursionpic 20, 232792560) "Рекурсия"
-  assertEquals (R.modulpic 20, 232792560) "Модули"
-  assertEquals (R.mappedpic 20, 232792560) "Мапа"
-  assertEquals (R.infinitypic 20, 232792560) "бессконечности"
-  TIO.putStrLn "end\n"
+  putStrLn "Testing Monoid)()()() ..."
+  quickCheck (\(a :: B.Bag Int) -> B.propMonoidLeftId a)
+  quickCheck (\(a :: B.Bag Int) -> B.propMonoidRightId a)
+  quickCheck (\(a :: B.Bag Int) (b :: B.Bag Int) (c :: B.Bag Int) ->
+                B.propMonoidAssociativity a b c)
 
-  TIO.putStrLn "2 ghj,ktvd"
-  assertEquals (K.tailrecpik 3, 1) "Хвостовая рекурсия"
-  assertEquals (K.recursionpik 1000, 1) "Рекурсия"
-  assertEquals (K.modulpik 7, 6) "Модули"
-  assertEquals (K.mappedpik 999, 3) "Мапа"
-  assertEquals (K.infinitypik 77, 6) "бессконечности"
-  TIO.putStrLn "end\n"
+  putStrLn "Testing size correctness............."
+  quickCheck (prop_sizeCorrectness :: [Int] -> Bool)
 
-assertEquals :: (Eq a) => (a, a) -> T.Text -> IO ()
-assertEquals (a, b) testDesc =
-  TIO.putStrLn $ (if a == b then "Passed: " else "Failed: ") <> testDesc
+prop_sizeCorrectness :: [Int] -> Bool
+prop_sizeCorrectness xs = B.size (B.fromList xs) == length xs
