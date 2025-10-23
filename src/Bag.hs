@@ -45,7 +45,7 @@ insert :: (Eq a, Hashable a) => a -> Bag a -> Bag a
 insert x (Bag table) = Bag (SCH.insertWith (+) x 1 table)
 
 insertList :: (Eq a, Hashable a) => Bag a -> [a] -> Bag a
-insertList bag = foldr insert bag
+insertList = foldr insert
 
 delete :: (Eq a, Hashable a) => a -> Bag a -> Bag a
 delete x (Bag table) =
@@ -54,7 +54,7 @@ delete x (Bag table) =
         _ -> Bag (SCH.delete x table)
 
 deleteList :: (Eq a, Hashable a) => Bag a -> [a] -> Bag a
-deleteList bag = foldl (flip delete) bag
+deleteList = foldl (flip delete)
 
 
 member :: (Eq a, Hashable a) => a -> Bag a -> Bool
