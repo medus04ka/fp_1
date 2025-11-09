@@ -21,7 +21,7 @@ printPairs = mapM_ print
 -- 0 -> только линейная
 -- 1 -> только лагранж
 -- 2 -> обе
-pickMethods :: Double -> [([(Double, Double)] -> [Double] -> [Double])]
+pickMethods :: Double -> [[(Double, Double)] -> [Double] -> [Double]]
 pickMethods mVal =
   case round mVal of
     0 -> [linearInterp]
@@ -44,7 +44,7 @@ main = do
 
   if not debug
     then
-      mapM_ (\ys -> printPairs (zip xs ys)) results
+      mapM_ (printPairs . zip xs) results
     else do
       let plots = map (zip xs) results
       plotPaths
