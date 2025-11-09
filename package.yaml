@@ -24,6 +24,7 @@ dependencies:
 - text
 - hashable
 - QuickCheck
+- gnuplot
 
 ghc-options:
 - -Wall

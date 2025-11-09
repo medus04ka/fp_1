@@ -1,29 +1,57 @@
 module Main (main) where
 
-import Bag
+import Graphics.Gnuplot.Simple
+import Huy
+import System.Environment (getArgs)
+
+readPoints :: Bool -> IO [(Double, Double)]
+readPoints dbg = do
+  raw <-
+    if dbg
+      then readFile "testik.txt"
+      else getContents
+  let toPair line =
+        case words line of
+          [sx, sy] -> (read sx, read sy)
+          _        -> error "Некорректная строка с точкой"
+  return $ map toPair (lines raw)
+
+printPairs :: (Show a, Show b) => [(a, b)] -> IO ()
+printPairs = mapM_ print
+-- 0 -> только линейная
+-- 1 -> только лагранж
+-- 2 -> обе
+pickMethods :: Double -> [([(Double, Double)] -> [Double] -> [Double])]
+pickMethods mVal =
+  case round mVal of
+    0 -> [linearInterp]
+    1 -> [lagrangeInterp]
+    _ -> [linearInterp, lagrangeInterp]
 
 main :: IO ()
 main = do
-    let b1 :: Bag Int
-        b1 = fromList [1, 2, 2, 3, 4, 4, 4]
+  args <- getArgs
+  let [start, step, stop, mCode, dbgFlag] = map read args :: [Double]
+      debug = dbgFlag == 1
 
-        b2 :: Bag Int
-        b2 = fromList [2, 4, 5]
+  pts <- readPoints debug
 
-    putStrLn "бэг 1:"
-    print (toList b1)
+  let xs = [start, start + step .. stop]
 
-    putStrLn "бэг 2:"
-    print (toList b2)
+  let methods = pickMethods mCode
 
-    putStrLn "Юнион:"
-    print (toList $ union b1 b2)
+  let results = map (\f -> f pts xs) methods
 
-    putStrLn "Intersection:"
-    print (toList $ intersection b1 b2)
-
-    putStrLn "Difference:"
-    print (toList $ difference b1 b2)
-
-    putStrLn "фильтры (>3):"
-    print (toList $ filterBag (>3) b1)
+  if not debug
+    then
+      mapM_ (\ys -> printPairs (zip xs ys)) results
+    else do
+      let plots = map (zip xs) results
+      plotPaths
+        [ Key Nothing
+        , Title "Interpolation demo"
+        , Custom "grid" []
+        ]
+        plots
+      _ <- getLine
+      return ()
