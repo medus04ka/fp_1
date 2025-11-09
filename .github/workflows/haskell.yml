@@ -2,9 +2,9 @@ name: Haskell CI
 
 on:
   push:
-    branches: [ "huyaster" ]
+    branches: [ "pzdaster" ]
   pull_request:
-    branches: [ "huyaster" ]
+    branches: [ "pzdaster" ]
 
 permissions:
   contents: read
