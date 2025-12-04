@@ -4,6 +4,6 @@
 
 # Вывод
 <div style="display:flex; padding:0; margin:0;">
-  <img src="image.png" style="margin:0; padding:0;">
+  <img src="image44.png" style="margin:0; padding:0;">
   <img src="image1.png" style="margin:0; padding:0;">
 </div>
