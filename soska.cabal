@@ -25,9 +25,13 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
-      Prob1
-      Prob2
+      Music.Core
+      Music.EDSL
+      Music.Transform
+      Music.Analysis
+      Spotify.Model
+      Spotify.Engine
+      Spotify.Library
   other-modules:
       Paths_soska
   autogen-modules:
@@ -36,8 +40,17 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , hspec
+    , mtl
+    , process
     , text
+    , transformers
   default-language: Haskell2010
 
 executable soska-exe
@@ -50,15 +63,26 @@ executable soska-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , hspec
+    , mtl
+    , process
     , soska
     , text
+    , transformers
   default-language: Haskell2010
 
 test-suite soska-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      MusicSpec
+      SpotifySpec
       Paths_soska
   autogen-modules:
       Paths_soska
@@ -66,7 +90,16 @@ test-suite soska-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -XOverloadedStrings -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , hspec
+    , mtl
+    , process
     , soska
     , text
+    , transformers
   default-language: Haskell2010

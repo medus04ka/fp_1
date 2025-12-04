@@ -22,6 +22,15 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - text
+- containers
+- bytestring
+- mtl
+- transformers
+- directory
+- filepath
+- hspec
+- QuickCheck
+- process
 
 ghc-options:
 - -Wall
@@ -37,6 +46,14 @@ ghc-options:
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Music.Core
+    - Music.EDSL
+    - Music.Transform
+    - Music.Analysis
+    - Spotify.Model
+    - Spotify.Engine
+    - Spotify.Library
 
 executables:
   soska-exe:
@@ -59,3 +76,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - soska
+    - hspec
+    - QuickCheck
