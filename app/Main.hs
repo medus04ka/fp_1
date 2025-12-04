@@ -169,7 +169,7 @@ likeTrackIO likes = do
             any (\l -> likeUser l == userId u && likeTrack l == tid) likes
       if alreadyLiked
         then do
-          putStrLn "Ты уже лайкнул этот трек."
+          putStrLn "Ты уже лайкнул этот трек ЛАЙКАТЬ НЕ НАДО."
           return likes
         else do
           let likeEntry =
@@ -187,7 +187,7 @@ showLikedTracks likes = do
       likedIds = likesOfUser (userId u) likes
   putStrLn $ "Лайкнутый трек(и?) юзера " ++ userName u ++ ":"
   if null likedIds
-    then putStrLn "Пока нет лайкнутых треков."
+    then putStrLn "Пока нет лайкнутых треков. тут желательно лайкнуть что-нибудь"
     else mapM_ printTrackInPlaylist likedIds
 
 showRecommendations :: [Like] -> IO ()
