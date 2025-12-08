@@ -35,8 +35,8 @@ data Track = Track
   deriving (Show, Eq)
 
 data User = User
-  { userId   :: UserId
-  , userName :: String
+  { userId   :: UserId,
+    userName :: String
   }
   deriving (Show, Eq)
 
