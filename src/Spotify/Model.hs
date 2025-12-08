@@ -18,6 +18,7 @@ type PlaylistId = Int
 
 data Genre
   = Rock
+  | HipHop
   | Pop
   | Jazz
   | Classical
@@ -26,17 +27,18 @@ data Genre
   deriving (Show, Eq, Ord)
 
 data Track = Track
-  { trackId   :: TrackId
-  , title     :: String
-  , artist    :: String
-  , genre     :: Genre
-  , musicData :: Music
+  { trackId   :: TrackId,
+    title     :: String,
+    artist    :: String,
+    genre     :: Genre
+  , tags      :: [String],
+    musicData :: Music
   }
   deriving (Show, Eq)
 
 data User = User
-  { userId   :: UserId,
-    userName :: String
+  { userId   :: UserId
+  , userName :: String
   }
   deriving (Show, Eq)
 

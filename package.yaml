@@ -31,6 +31,10 @@ dependencies:
 - hspec
 - QuickCheck
 - process
+- aeson
+- http-client
+- http-client-tls
+- base64-bytestring
 
 ghc-options:
 - -Wall

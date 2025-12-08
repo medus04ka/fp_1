@@ -11,24 +11,44 @@ import Spotify.Library
   ( allTracks,
     demoLikes,
     demoPlaylist,
-    demoUser
+    demoUser,
+    trackAudioPath
   )
 import Spotify.Model
---TODO: а можно свои треки? переделать\\ 
--- и еще хочется чтоб они песни проигрывались, но это потом\\
--- import Music.Core (Genre (..), Track (..), TrackId, User (..), Like (..), Playlist (..))
--- import Music.EDSL
---чтоб меню не возникало каждый раз после выбора\\а было что типа "назад в меню"
+  ( Track(..),
+    TrackId,
+    Playlist(..),
+    Like(..),
+    User(..),
+    Genre(..)
+  )
+
+import System.Info (os)
+import System.Process (callCommand)
+import Data.List (isInfixOf, dropWhileEnd)
+import Data.Char (ord, isSpace)
+import System.IO (hFlush, stdout)
+import Control.Exception (try, IOException)
+
+-- TODO: а можно свои треки? переделать
+-- и еще хочется чтоб они песни проигрывались, но это потом
+-- чтоб меню не возникало каждый раз после выбора\\а было что типа "назад в меню"
+
+data ExternalPlaylist = ExternalPlaylist
+  { epName :: String,
+    epUrls :: [String]
+  }
+  deriving (Show)
 
 main :: IO ()
 main = do
   putStrLn "Welcome to the Haskell Spotify Demo!"
   putStrLn ""
-  loop demoLikes demoPlaylist
+  loop demoLikes demoPlaylist Nothing
 
--- loopсостояние лайков и плейлиста
-loop :: [Like] -> Playlist -> IO ()
-loop likes pl = do
+--loop сосяет с меню и операциями
+loop :: [Like] -> Playlist -> Maybe ExternalPlaylist -> IO ()
+loop likes pl extPl = do
   putStrLn ""
   putStrLn "Меню:"
   putStrLn "1. Показать все треки"
@@ -39,41 +59,75 @@ loop likes pl = do
   putStrLn "6. Показать лайкнутые треки"
   putStrLn "7. Показать рекомендации (по жанру)"
   putStrLn "8. Проанализировать трек"
+  putStrLn "9. Проиграть трек"
+  putStrLn "10. Импортировать плейлист из файла"
+  putStrLn "11. Показать импортированный плейлист"
+  putStrLn "12. Проиграть импортированный трек"
+  putStrLn "13. Проанализировать трек из импортированного плейлиста"
   putStrLn "0. Выйти"
   putStrLn "================"
   putStr "Введите выбор: "
+  hFlush stdout
   choice <- getLine
   putStrLn ""
   case choice of
     "1" -> do
       showAllTracks
-      loop likes pl
+      waitForEnter
+      loop likes pl extPl
     "2" -> do
       showPlaylist pl
-      loop likes pl
+      waitForEnter
+      loop likes pl extPl
     "3" -> do
       pl' <- addTrackToPlaylistIO pl
-      loop likes pl'
+      waitForEnter
+      loop likes pl' extPl
     "4" -> do
       pl' <- removeTrackFromPlaylistIO pl
-      loop likes pl'
+      waitForEnter
+      loop likes pl' extPl
     "5" -> do
       likes' <- likeTrackIO likes
-      loop likes' pl
+      waitForEnter
+      loop likes' pl extPl
     "6" -> do
       showLikedTracks likes
-      loop likes pl
+      waitForEnter
+      loop likes pl extPl
     "7" -> do
       showRecommendations likes
-      loop likes pl
+      waitForEnter
+      loop likes pl extPl
     "8" -> do
       analyzeTrackIO
-      loop likes pl
+      waitForEnter
+      loop likes pl extPl
+    "9" -> do
+      playTrackIO
+      waitForEnter
+      loop likes pl extPl
+    "10" -> do
+      extPl' <- importExternalPlaylistIO
+      waitForEnter
+      loop likes pl extPl'
+    "11" -> do
+      showExternalPlaylist extPl
+      waitForEnter
+      loop likes pl extPl
+    "12" -> do
+      playFromExternalPlaylistIO extPl
+      waitForEnter
+      loop likes pl extPl
+    "13" -> do
+      analyzeFromExternalPlaylistIO extPl
+      waitForEnter
+      loop likes pl extPl
     "0" -> do
-      putStrLn "Пока- пока 🌸"
+      putStrLn "Пока- пока!! Спасибо за использование Haskell Spotify Demo."
     _ -> do
       putStrLn "Чета ты набредил, попробуй еще раз. (только без бредика)"
-      loop likes pl
+      loop likes pl extPl
 
 --вывод треков/ плейлистов
 showAllTracks :: IO ()
@@ -123,13 +177,13 @@ printTrackInPlaylist tid =
 findTrack :: TrackId -> Maybe Track
 findTrack tid =
   case filter (\t -> trackId t == tid) allTracks of
-    [] -> Nothing
-    (t : _) -> Just t
+    []    -> Nothing
+    t : _ -> Just t
 
 --операции с плейлистом
 addTrackToPlaylistIO :: Playlist -> IO Playlist
 addTrackToPlaylistIO pl = do
-  putStrLn "Вводите id трека для добавления:"
+  putStrLn "Вводите ид трека для добавления:"
   tid <- readIntFromLine
   case findTrack tid of
     Nothing -> do
@@ -169,7 +223,7 @@ likeTrackIO likes = do
             any (\l -> likeUser l == userId u && likeTrack l == tid) likes
       if alreadyLiked
         then do
-          putStrLn "Ты уже лайкнул этот трек ЛАЙКАТЬ НЕ НАДО."
+          putStrLn "Ты уже лайкнул этот трек, ЛАЙКАТЬ НЕ НАДО."
           return likes
         else do
           let likeEntry =
@@ -183,7 +237,7 @@ likeTrackIO likes = do
 
 showLikedTracks :: [Like] -> IO ()
 showLikedTracks likes = do
-  let u = demoUser
+  let u        = demoUser
       likedIds = likesOfUser (userId u) likes
   putStrLn $ "Лайкнутый трек(и?) юзера " ++ userName u ++ ":"
   if null likedIds
@@ -192,7 +246,7 @@ showLikedTracks likes = do
 
 showRecommendations :: [Like] -> IO ()
 showRecommendations likes = do
-  let u = demoUser
+  let u    = demoUser
       recs = recommendedByGenre allTracks likes (userId u)
   putStrLn $ "Рекомендации для " ++ userName u ++ " (по жанру):"
   if null recs
@@ -208,24 +262,160 @@ analyzeTrackIO = do
     Nothing ->
       putStrLn "ноу сач трек ид ин либрари."
     Just t -> do
-      let m = musicData t
-          beats = totalDuration m
-          pr = pitchRange m
-      putStrLn $ "Название: " ++ title t
-      putStrLn $ "Исполнитель: " ++ artist t
-      putStrLn $ "Жанр: " ++ show (genre t)
-      putStrLn $ "Общая длительность (в тактах): " ++ show (fromRational beats :: Double)
-      case pr of
-        Nothing ->
-          putStrLn "Диапазон высот: нет нот (только паузы)."
-        Just (lo, hi) ->
-          putStrLn $
-            "Диапазон высот: "
-              ++ show lo
-              ++ " .. "
-              ++ show hi
+      case trackAudioPath tid of
+        Just url | "open.spotify.com" `isInfixOf` url -> do
+          putStrLn $ "Трек привязан к Spotify: " ++ url
+          analyzeSpotifyLike t url
+        _ -> do
+          let m     = musicData t
+              beats = totalDuration m
+              pr    = pitchRange m
+          putStrLn $ "Название: " ++ title t
+          putStrLn $ "Исполнитель: " ++ artist t
+          putStrLn $ "Жанр: " ++ show (genre t)
+          putStrLn $ "Длительность (в долях): "
+            ++ show (fromRational beats :: Double)
+          case pr of
+            Nothing ->
+              putStrLn "Диапазон высот: нет нот (только паузы)."
+            Just (lo, hi) ->
+              putStrLn $
+                "Диапазон высот (индексы полутонов): "
+                  ++ show lo ++ " .. " ++ show hi
 
---чтение Int из строки7
+analyzeSpotifyLike :: Track -> String -> IO ()
+analyzeSpotifyLike t url = do
+  let s        = title t ++ artist t ++ url
+      base     = sum (map ord s)
+      tempo    = 60  + base `mod` 100
+      energy   = fromIntegral (base `mod` 100) / 100.0
+      dance    = fromIntegral ((base `div` 3) `mod` 100) / 100.0
+      valence  = fromIntegral ((base `div` 7) `mod` 100) / 100.0
+      acoustic = fromIntegral ((base `div` 11) `mod` 100) / 100.0
+
+  putStrLn $ "Название: " ++ title t
+  putStrLn $ "Исполнитель: " ++ artist t
+  putStrLn $ "Жанр (по нашему каталогу): " ++ show (genre t)
+  putStrLn $ "Темп (BPM):      " ++ show tempo
+  putStrLn $ "Энергия (0..1):    " ++ show energy
+  putStrLn $ "Танцевальность:     " ++ show dance
+  putStrLn $ "Позитивность:          " ++ show valence
+  putStrLn $ "Акустичность:     " ++ show acoustic
+  putStrLn   "------------------------------------"
+
+playTrackIO :: IO ()
+playTrackIO = do
+  putStrLn "Введите id трека для проигрывания:"
+  tid <- readIntFromLine
+  case trackAudioPath tid of
+    Nothing ->
+      putStrLn "Для этого трека нет привязанного аудиофайла или ссылки."
+    Just path -> do
+      putStrLn $ "Открываю: " ++ path
+      playAudioFile path
+
+playAudioFile :: FilePath -> IO ()
+playAudioFile path =
+  case os of
+    "mingw32" -> callCommand $ "start \"\" \"" ++ path ++ "\""  -- Windows!!
+    "linux"   -> callCommand $ "xdg-open \"" ++ path ++ "\""    -- Linux
+    "darwin"  -> callCommand $ "open \"" ++ path ++ "\""        -- macOS
+    _         -> putStrLn "Неизвестная ОС, не могу открыть аудиофайл."
+
+
+importExternalPlaylistIO :: IO (Maybe ExternalPlaylist)
+importExternalPlaylistIO = do
+  putStrLn "Введите путь к файлу с ссылками (по одной в строке):"
+  path <- getLine
+  contentsOrError <- safeReadFile path
+  case contentsOrError of
+    Left err -> do
+      putStrLn $ "Не удалось прочитать файл: " ++ err
+      return Nothing
+    Right contents -> do
+      let ls   = lines contents
+          urls = filter (not . null) (map trim ls)
+      if null urls
+        then do
+          putStrLn "В файле не найдено ни одной непустой строки."
+          return Nothing
+        else do
+          let pl =
+                ExternalPlaylist
+                  { epName = path,
+                    epUrls = urls
+                  }
+          putStrLn $
+            "Импортирован плейлист из файла: " ++ path
+              ++ " (треков: "
+              ++ show (length urls)
+              ++ ")"
+          return (Just pl)
+
+showExternalPlaylist :: Maybe ExternalPlaylist -> IO ()
+showExternalPlaylist Nothing =
+  putStrLn "Импортированный плейлист пока не загружен."
+showExternalPlaylist (Just ep) = do
+  putStrLn $ "Импортированный плейлист: " ++ epName ep
+  if null (epUrls ep)
+    then putStrLn "Плейлист пуст."
+    else do
+      putStrLn "Ссылки:"
+      mapM_ (\(i,u) -> putStrLn (show i ++ ". " ++ u)) (zip [1 :: Int ..] (epUrls ep))
+
+playFromExternalPlaylistIO :: Maybe ExternalPlaylist -> IO ()
+playFromExternalPlaylistIO Nothing =
+  putStrLn "Импортированный плейлист пока не загружен."
+playFromExternalPlaylistIO (Just ep) =
+  if null (epUrls ep)
+    then putStrLn "В импортированном плейлисте нет ссылок."
+    else do
+      putStrLn $ "Импортированный плейлист: " ++ epName ep
+      mapM_ (\(i,u) -> putStrLn (show i ++ ". " ++ u)) (zip [1 :: Int ..] (epUrls ep))
+      putStrLn "Введите номер трека для проигрывания:"
+      idx <- readIntFromLine
+      if idx < 1 || idx > length (epUrls ep)
+        then putStrLn "Нет трека с таким номером."
+        else do
+          let url = epUrls ep !! (idx - 1)
+          putStrLn $ "Открываю: " ++ url
+          playAudioFile url
+
+analyzeFromExternalPlaylistIO :: Maybe ExternalPlaylist -> IO ()
+analyzeFromExternalPlaylistIO Nothing =
+  putStrLn "Импортированный плейлист пока не загружен."
+analyzeFromExternalPlaylistIO (Just ep) =
+  if null (epUrls ep)
+    then putStrLn "В импортированном плейлисте нет ссылок."
+    else do
+      putStrLn $ "Импортированный плейлист: " ++ epName ep
+      mapM_ (\(i,u) -> putStrLn (show i ++ ". " ++ u)) (zip [1 :: Int ..] (epUrls ep))
+      putStrLn "Введите номер ссылки для анализа:"
+      idx <- readIntFromLine
+      if idx < 1 || idx > length (epUrls ep)
+        then putStrLn "Нет трека с таким номером."
+        else do
+          let url = epUrls ep !! (idx - 1)
+          analyzeExternalSpotifyUrl url
+
+analyzeExternalSpotifyUrl :: String -> IO ()
+analyzeExternalSpotifyUrl url = do
+  let s        = url
+      base     = sum (map ord s)
+      tempo    = 60  + base `mod` 100
+      energy   = fromIntegral (base `mod` 100) / 100.0
+      dance    = fromIntegral ((base `div` 3) `mod` 100) / 100.0
+      valence  = fromIntegral ((base `div` 7) `mod` 100) / 100.0
+      acoustic = fromIntegral ((base `div` 11) `mod` 100) / 100.0
+
+  putStrLn $ "Ссылка: " ++ url
+  putStrLn $ "Темп (BPM):      " ++ show tempo
+  putStrLn $ "Энергия (0..1):  " ++ show energy
+  putStrLn $ "Танцевальность:  " ++ show dance
+  putStrLn $ "Позитивность:    " ++ show valence
+  putStrLn $ "Акустичность:    " ++ show acoustic
+  putStrLn "-----------------------------------------------------"
+
 readIntFromLine :: IO Int
 readIntFromLine = do
   s <- getLine
@@ -234,3 +424,20 @@ readIntFromLine = do
     _ -> do
       putStrLn "Инвалид намбер мяу:"
       readIntFromLine
+
+waitForEnter :: IO ()
+waitForEnter = do
+  putStrLn ""
+  putStrLn "Нажми Enter, чтобы вернуться в меню..........."
+  _ <- getLine
+  return ()
+
+trim :: String -> String
+trim = dropWhileEnd isSpace . dropWhile isSpace
+
+safeReadFile :: FilePath -> IO (Either String String)
+safeReadFile path = do
+  res <- try (readFile path) :: IO (Either IOException String)
+  case res of
+    Left e  -> return (Left (show e))
+    Right t -> return (Right t)
