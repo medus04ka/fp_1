@@ -5,7 +5,7 @@ module Spotify.Engine
     recommendedByGenre,
   )
 where
-
+-- команда и название ссылкой в плейлист, доставать нейм с ококок
 import qualified Data.Map.Strict as Map
 import Spotify.Model
 

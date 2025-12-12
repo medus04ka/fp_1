@@ -22,6 +22,11 @@ import Spotify.Model
     User(..),
     Genre(..)
   )
+import Spotify.Search(
+    searchTracks,
+    TrackHit(..),
+    trackHitUrl
+  )
 
 import System.Info (os)
 import System.Process (callCommand)
@@ -29,6 +34,7 @@ import Data.List (isInfixOf, dropWhileEnd)
 import Data.Char (ord, isSpace)
 import System.IO (hFlush, stdout)
 import Control.Exception (try, IOException)
+import System.Directory (doesFileExist)
 
 -- TODO: а можно свои треки? переделать
 -- и еще хочется чтоб они песни проигрывались, но это потом
@@ -64,6 +70,7 @@ loop likes pl extPl = do
   putStrLn "11. Показать импортированный плейлист"
   putStrLn "12. Проиграть импортированный трек"
   putStrLn "13. Проанализировать трек из импортированного плейлиста"
+  putStrLn "14. Поиск трека в Spotify"
   putStrLn "0. Выйти"
   putStrLn "================"
   putStr "Введите выбор: "
@@ -121,6 +128,10 @@ loop likes pl extPl = do
       loop likes pl extPl
     "13" -> do
       analyzeFromExternalPlaylistIO extPl
+      waitForEnter
+      loop likes pl extPl
+    "14" -> do
+      searchAndSaveSpotifyLinkIO
       waitForEnter
       loop likes pl extPl
     "0" -> do
@@ -441,3 +452,31 @@ safeReadFile path = do
   case res of
     Left e  -> return (Left (show e))
     Right t -> return (Right t)
+
+searchAndSaveSpotifyLinkIO :: IO ()
+searchAndSaveSpotifyLinkIO = do
+  putStrLn "Название исполнителя ппзл:"
+  q <- getLine
+  putStrLn "а куда сохранить? лучше бери на playlist.txt"
+  out <- getLine
+
+  hits <- searchTracks q
+  if null hits
+    then putStrLn "Ничего не нашла :("
+    else do
+      putStrLn "Теоретически возможно нашлось:"
+      mapM_ (\(i,h) ->
+               putStrLn $
+                 show i ++ ". " ++ hitName h ++ " - " ++ hitArtist h
+                 ++ "\n    " ++ trackHitUrl h
+            ) (zip [1 :: Int ..] hits)
+
+      putStrLn "Введите цифру трека, который сохранить:"
+      idx <- readIntFromLine
+      if idx < 1 || idx > length hits
+        then putStrLn "Нет такой циферки"
+        else do
+          let url = trackHitUrl (hits !! (idx - 1))
+          appendFile out (url ++ "\n")
+          putStrLn $ "Сохранила ссылку в файл: " ++ out
+          putStrLn $ "Вероятно добавлено: " ++ url

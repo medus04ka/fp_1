@@ -32,6 +32,7 @@ library
       Spotify.Model
       Spotify.Engine
       Spotify.Library
+      Spotify.Search
   other-modules:
       Spotify.External
       Paths_soska
@@ -52,6 +53,7 @@ library
     , hspec
     , http-client
     , http-client-tls
+    , http-types
     , mtl
     , process
     , text
@@ -79,6 +81,7 @@ executable soska-exe
     , hspec
     , http-client
     , http-client-tls
+    , http-types
     , mtl
     , process
     , soska
@@ -110,6 +113,7 @@ test-suite soska-test
     , hspec
     , http-client
     , http-client-tls
+    , http-types
     , mtl
     , process
     , soska

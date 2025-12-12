@@ -34,6 +34,7 @@ dependencies:
 - aeson
 - http-client
 - http-client-tls
+- http-types
 - base64-bytestring
 
 ghc-options:
@@ -58,6 +59,7 @@ library:
     - Spotify.Model
     - Spotify.Engine
     - Spotify.Library
+    - Spotify.Search
 
 executables:
   soska-exe:
